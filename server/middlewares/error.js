@@ -1,36 +1,59 @@
-const winston = require("winston");
+const logger = require("../config/logger");
+const httpStatus = require("http-status");
+const { ApiError } = require("../utils");
 
 /**
- * Handle server error and sends response back to client
+ * Conver default error to ApiError and sends to client
  *
- * @param {object} res  express response object
- * @param {number} statusCode status code to send alng with response
- * @param {any} err client message to be send along with response
+ * @param {Error} err {statusCode: number, message: string}
+ * @param {Request} req
+ * @param {Response} res
+ * @param {NextFunction} next
  */
-function sendServerError(res, statusCode, err) {
-  if (statusCode < 500) statusCode = 500;
+const errorConverter = (err, req, res, next) => {
+  logger.info('errorConverter')
+  let error = err;
+  if (err) {
+    const statusCode = error.statusCode || httpStatus.INTERNAL_SERVER_ERROR;
+    const message = String(error.message || httpStatus[statusCode]);
+    error = new ApiError(statusCode, message, false, err.stack);
+    res.status(statusCode).send({ err: message });
 
-  let errMessage = null;
-
-  if (err.isBoom) {
-    winston.error({ message: err.output.payload.message, metadata: err });
-    errMessage = err.output.payload;
-  } else {
-    winston.error({ message: err.message, metadata: err });
-    errMessage = "Something went wrong";
+    if (process.env.NODE_ENV === "development") {
+      logger.error({ message: error.message, metadata: err });
+    }
   }
-  res.status(statusCode).send(errMessage);
-}
-
-module.exports = function(err, req, res, next) {
-  if (err.isBoom) {
-    let { isServer, output } = err;
-    let { statusCode, payload } = output;
-    if (isServer) return sendServerError(res, statusCode, err);
-    // Log error to mongodb
-    winston.error({ message: payload.message, metadata: err });
-    res.status(statusCode).send(payload);
-  } else {
-    sendServerError(res, 500, err);
-  }
+  next(error);
 };
+
+/**
+ * Handle error and sends response back to client
+ *
+ * @param {ApiError} err
+ * @param {Request} req
+ * @param {Response} res
+ */
+const errorHandler = (err, req, res) => {
+  logger.info('errorHandler')
+  let { statusCode, message } = err;
+  if (process.env.NODE_ENV === "production" && !err.isOperational) {
+    statusCode = httpStatus.INTERNAL_SERVER_ERROR;
+    message = String(httpStatus[httpStatus.INTERNAL_SERVER_ERROR]);
+  }
+
+  res.locals.errorMessage = err.message;
+
+  const response = {
+    code: statusCode,
+    message,
+    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
+  };
+
+  if (process.env.NODE_ENV === "development") {
+    logger.error({ message: err.message, metadata: err });
+  }
+
+  res.status(statusCode).send(response);
+};
+
+module.exports = { errorHandler, errorConverter };

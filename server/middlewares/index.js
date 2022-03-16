@@ -1,5 +1,5 @@
-const asyncMiddleware = require("./async");
 const errorMiddleware = require("./error");
 const networkMiddleware = require("./network");
+const validateMiddleware = require("./validate");
 
-module.exports = { asyncMiddleware, errorMiddleware, networkMiddleware };
+module.exports = { errorMiddleware, networkMiddleware, validateMiddleware };
