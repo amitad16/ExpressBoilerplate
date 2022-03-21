@@ -1,10 +1,9 @@
 {
-  "name": "surveyed-app-api",
+  "name": "express-boilerplate",
   "version": "1.0.0",
-  "description": "API for surveyed package question generator app",
+  "description": "Auth API",
   "main": "server/app.js",
   "scripts": {
-    "clean": "rm -r ./server/models/user & rm -r ./server/routes/api/users & cat /dev/null > ./server/routes/index.js & sed -i '11,11d' ./server/startup/routes.js",
     "server": "nodemon server/app.js"
   },
   "repository": {
@@ -12,7 +11,7 @@
     "url": "git+https://github.com/amitad16/ExpressBoilerplate.git"
   },
   "keywords": [
-    "surveyed-app-api",
+    "express-boilerplate",
     "api-organization"
   ],
   "author": "Amit Dimri",
@@ -22,14 +21,23 @@
   },
   "homepage": "https://github.com/amitad16/ExpressBoilerplate#readme",
   "dependencies": {
+    "@sendgrid/mail": "^7.6.2",
+    "bcryptjs": "^2.4.3",
     "compression": "^1.7.4",
+    "cookie": "^0.4.2",
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
     "express": "^4.17.3",
     "helmet": "^5.0.2",
     "http-status": "^1.5.0",
     "joi": "^17.6.0",
+    "jsonwebtoken": "^8.5.1",
+    "moment": "^2.29.1",
     "mongoose": "^6.2.6",
+    "nodemailer": "^6.7.2",
+    "passport": "^0.5.2",
+    "passport-jwt": "^4.0.0",
+    "validator": "^13.7.0",
     "winston": "^3.6.0",
     "winston-mongodb": "^5.0.7"
   },
